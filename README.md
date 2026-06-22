@@ -94,3 +94,7 @@ Senza GPU, imposta `USA_CUDA = False` per usare il loop Python di riferimento.
 
 Basato sul notebook originale di **Paolo Coletti**. Questa versione corregge alcuni
 bug del modello (documentati in `CLAUDE.md`) e aggiunge l'esecuzione su GPU.
+
+## Licenza
+
+Distribuito sotto licenza **GNU General Public License v3** (vedi file `LICENSE`).
