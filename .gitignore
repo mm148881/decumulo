@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Backup e file temporanei
+*.bak
+
+# Configurazione locale dell'assistente
+.claude/
