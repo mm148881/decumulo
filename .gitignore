@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Progetto Decumulo: backup e configurazione locale assistente
+*.bak
+.claude/
