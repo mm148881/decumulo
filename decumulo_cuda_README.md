@@ -226,6 +226,66 @@ quelli su Linux. Cambiano solo l'installazione e un dettaglio del driver.
 - **Alternativa WSL2**: in WSL2 con CUDA si segue esattamente la procedura Linux di
   questo README.
 
+### 6.1 Setup GPU su Windows 11 — fix necessari (giugno 2026)
+
+Su Windows 11, il percorso GPU (`USA_CUDA = True`) può richiedere **due fix
+specifici** che non sono ovvi dai traceback che producono. Riguardano **solo** il
+percorso GPU: **il percorso CPU (`USA_CUDA = False`) non ha bisogno di nulla di
+tutto questo.** Esegui i comandi con l'environment attivato (vedi [§0](#0-il-tuo-environment-python)).
+
+**Fix 1 — regressione nvJitLink / linker LTO.** Sintomo:
+
+```
+nvJitLinkError: ERROR_INTERNAL (6)
+nvJitLink error log: ERROR 4 in nvvmAddNVVMContainerToProgram, may need newer version of nvJitLink library
+```
+
+Causa: una regressione in `numba-cuda > 0.15.1` combinata con le wheel recenti di
+`cuda-bindings` / `cuda-core`. Sotto LTO la nvJitLink installata è più vecchia del
+container NVVM che `libnvvm` emette, e il link fallisce. Soluzione — fissare
+l'ultima combinazione nota funzionante:
+
+```
+pip install "numba-cuda==0.15.1" "cuda-core" "cuda-bindings" "cuda-pathfinder" "cuda-python==13.1.1"
+```
+
+> I pin sopra sono un **workaround** per la regressione nvJitLink di
+> `numba-cuda > 0.15.1`, valido a **giugno 2026**. Verifica in futuro se una
+> versione più recente di `numba-cuda` ha risolto il problema: in tal caso questi
+> pin non servono più.
+
+**Fix 2 — `pywin32` mancante.** Sintomo (spesso annidato in una ricorsione
+profonda di `get_cuda_paths` / `get_major_cuda_version`):
+
+```
+ModuleNotFoundError: No module named 'win32api'
+```
+
+Causa: su Windows numba-cuda risolve i percorsi delle DLL CUDA (incluse nelle
+wheel) tramite `win32api.GetModuleFileNameW`. `win32api` è in `pywin32`, che non
+viene installato automaticamente. Soluzione:
+
+```
+pip install pywin32
+```
+
+Se dopo l'installazione `import win32api` fallisce ancora con un errore di
+caricamento DLL, esegui una volta lo step di post-install (adatta il percorso
+all'environment attivo):
+
+```
+python <venv>\Scripts\pywin32_postinstall.py -install
+```
+
+**Verifica:**
+
+```
+python -c "import win32api; from numba import cuda; print(cuda.is_available()); cuda.detect()"
+```
+
+Atteso: `True` e la GPU elencata. **Riavvia il kernel di Jupyter** dopo
+l'installazione, poi ri-esegui dalla cella `USA_CUDA`.
+
 ---
 
 ## 7. Note e risoluzione problemi
